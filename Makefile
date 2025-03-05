@@ -1,16 +1,16 @@
 IMAGE_NAME = tg_syncer
 CONTAINER_NAME = tg_syncer
-DATA_DIR = ./data
+VOLUME_NAME = tg_syncer
 ENV_FILE = .env
 
 build:
-	docker build -t $(IMAGE_NAME) .
+	docker build -t $(IMAGE_NAME) . --no-cache
 
 run:
 	docker run -it \
 		--detach-keys="ctrl-x" \
 		--network host \
-		-v $(DATA_DIR):/data \
+		--volume $(VOLUME_NAME):/data \
 		--env-file $(ENV_FILE) \
 		--name $(CONTAINER_NAME) \
 		$(IMAGE_NAME)

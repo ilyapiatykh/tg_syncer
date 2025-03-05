@@ -1,0 +1,4 @@
+pydantic
+telethon
+PyYAML
+pydantic_settings

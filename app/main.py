@@ -31,6 +31,9 @@ if __name__ == "__main__":
         TG_SESSION_FILE_PATH,
         int(config.api_id.get_secret_value()),
         config.api_hash.get_secret_value(),
+        device_model="dina phone",  # https://qna.habr.com/q/1232932
+        system_version="Dina OS",
+        app_version="1.0.0",
     ) as client:
 
         @client.on(events.NewMessage(chats=config.source_channels_ids))
@@ -44,9 +47,7 @@ if __name__ == "__main__":
             src_msg = event.message
             src_channel_id = event.chat_id
 
-            with logger.contextualize(
-                channel=src_channel_id, msg_id=src_msg.id, text=src_msg.text
-            ):
+            with logger.contextualize(channel=src_channel_id, msg_id=src_msg.id, text=src_msg.text):
                 logger.debug("new message")
 
                 if not src_msg.text:
@@ -59,28 +60,20 @@ if __name__ == "__main__":
                 target_msg_id = db.check_duplicate(msg_hash, src_channel_id)
 
                 if target_msg_id:
-                    db.save(
-                        target_msg_id, src_msg.id, msg_hash, src_channel_id
-                    )
+                    db.save(target_msg_id, src_msg.id, msg_hash, src_channel_id)
                     logger.debug("save message duplicate and skip")
                     return
 
-                target_channel = await client.get_input_entity(
-                    config.target_channel_id
-                )
+                target_channel = await client.get_input_entity(config.target_channel_id)
 
                 target_replied_msg_id = None
                 if src_msg.reply_to_msg_id:
-                    target_replied_msg_id = db.get_target_msg_id(
-                        src_msg.reply_to_msg_id, src_channel_id
-                    )
+                    target_replied_msg_id = db.get_target_msg_id(src_msg.reply_to_msg_id, src_channel_id)
                     if not target_replied_msg_id:
                         logger.warning("no matching message found for reply")
                         return
 
-                sent_message = await client.send_message(
-                    target_channel, text, reply_to=target_replied_msg_id
-                )
+                sent_message = await client.send_message(target_channel, text, reply_to=target_replied_msg_id)
 
                 db.save(
                     sent_message.id,
